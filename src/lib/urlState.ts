@@ -2,6 +2,28 @@ import { defaultModelIdsForLocation, MODEL_BY_ID } from '../data/models'
 import { DEFAULT_PARAMETER_IDS, PARAMETER_MAP } from '../data/parameters'
 import type { Location, TimeMode, UnitSettings } from '../types'
 
+const STORAGE_KEY = 'meteo-compare:config'
+
+const CONFIG_KEYS = new Set([
+  'lat',
+  'lon',
+  'name',
+  'cc',
+  'country',
+  'admin1',
+  'elev',
+  'tz',
+  'models',
+  'params',
+  'mode',
+  'days',
+  'tu',
+  'wu',
+  'pu',
+  'view',
+  'active',
+])
+
 export const DEFAULT_LOCATION: Location = {
   name: 'Paris',
   latitude: 48.8566,
@@ -62,8 +84,29 @@ function parseUnits(params: URLSearchParams): UnitSettings {
   }
 }
 
+function hasConfigParams(params: URLSearchParams): boolean {
+  for (const key of CONFIG_KEYS) {
+    if (params.has(key)) return true
+  }
+  return false
+}
+
+function readStoredParams(): URLSearchParams | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return null
+    const params = new URLSearchParams(raw)
+    return hasConfigParams(params) ? params : null
+  } catch {
+    return null
+  }
+}
+
 export function readConfigFromUrl(): AppConfig {
-  const params = new URLSearchParams(window.location.search)
+  const urlParams = new URLSearchParams(window.location.search)
+  const params = hasConfigParams(urlParams)
+    ? urlParams
+    : (readStoredParams() ?? urlParams)
   const latitude = parseNumber(params.get('lat'))
   const longitude = parseNumber(params.get('lon'))
   const hasCoordinates = latitude !== undefined && longitude !== undefined
@@ -143,6 +186,14 @@ export function writeConfigToUrl(config: AppConfig): void {
   if (config.view) params.set('view', config.view)
   if (config.activeParameterId) params.set('active', config.activeParameterId)
 
-  const url = `${window.location.pathname}?${params.toString()}`
+  const search = params.toString()
+
+  try {
+    localStorage.setItem(STORAGE_KEY, search)
+  } catch {
+    // Stockage indisponible : l'URL reste la source de vérité.
+  }
+
+  const url = `${window.location.pathname}?${search}`
   window.history.replaceState(null, '', url)
 }

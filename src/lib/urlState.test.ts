@@ -3,6 +3,7 @@ import { readConfigFromUrl, writeConfigToUrl } from './urlState'
 
 beforeEach(() => {
   window.history.replaceState(null, '', '/')
+  localStorage.clear()
 })
 
 describe('urlState', () => {
@@ -50,5 +51,64 @@ describe('urlState', () => {
     const params = new URLSearchParams(window.location.search)
     expect(params.get('view')).toBe('table')
     expect(params.get('active')).toBe('temperature_2m')
+  })
+
+  it('restaure la configuration mémorisée quand l’URL ne contient aucun paramètre', () => {
+    writeConfigToUrl({
+      location: {
+        name: 'Lyon',
+        latitude: 45.764,
+        longitude: 4.8357,
+        countryCode: 'FR',
+      },
+      modelIds: ['ecmwf_ifs', 'ncep_gfs_seamless'],
+      parameterIds: ['precipitation_sum'],
+      mode: 'daily',
+      days: 10,
+      units: {
+        temperature: 'fahrenheit',
+        wind: 'kn',
+        precipitation: 'inch',
+      },
+      view: 'table',
+      activeParameterId: 'precipitation_sum',
+    })
+
+    window.history.replaceState(null, '', '/')
+
+    const config = readConfigFromUrl()
+    expect(config.location.name).toBe('Lyon')
+    expect(config.location.latitude).toBeCloseTo(45.764)
+    expect(config.modelIds).toEqual(['ecmwf_ifs', 'ncep_gfs_seamless'])
+    expect(config.parameterIds).toEqual(['precipitation_sum'])
+    expect(config.mode).toBe('daily')
+    expect(config.days).toBe(10)
+    expect(config.units).toEqual({
+      temperature: 'fahrenheit',
+      wind: 'kn',
+      precipitation: 'inch',
+    })
+    expect(config.view).toBe('table')
+    expect(config.activeParameterId).toBe('precipitation_sum')
+  })
+
+  it('donne la priorité aux paramètres de l’URL sur la configuration mémorisée', () => {
+    writeConfigToUrl({
+      location: { name: 'Lyon', latitude: 45.764, longitude: 4.8357 },
+      modelIds: ['ecmwf_ifs'],
+      parameterIds: ['temperature_2m'],
+      mode: 'hourly',
+      days: 7,
+      units: {
+        temperature: 'celsius',
+        wind: 'kmh',
+        precipitation: 'mm',
+      },
+    })
+
+    window.history.replaceState(null, '', '/?lat=43.3&lon=5.4&name=Marseille')
+
+    const config = readConfigFromUrl()
+    expect(config.location.name).toBe('Marseille')
   })
 })
