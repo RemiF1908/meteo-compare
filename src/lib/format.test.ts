@@ -39,10 +39,10 @@ describe('format', () => {
     expect(flagEmoji(undefined)).toBe('🌍')
   })
 
-  it('formate l’heure de sortie d’un modèle en UTC', () => {
-    expect(formatRunTime(Date.UTC(2026, 10, 10, 12, 0, 0) / 1000)).toMatch(
-      /12:00 UTC$/,
-    )
+  it('formate l’heure de sortie d’un modèle en heure locale', () => {
+    const localNoon = new Date(2026, 10, 10, 12, 0, 0).getTime() / 1000
+    expect(formatRunTime(localNoon)).toMatch(/12:00$/)
+    expect(formatRunTime(localNoon)).not.toContain('UTC')
     expect(formatRunTime(null)).toBe('—')
     expect(formatRunTime(Number.NaN)).toBe('—')
   })

@@ -14,7 +14,8 @@ describe('ModelPicker', () => {
         statuses={{ ecmwf_ifs: 'ok' }}
         runs={{
           ecmwf_ifs: {
-            initialisationTime: Date.UTC(2026, 10, 10, 12, 0, 0) / 1000,
+            initialisationTime:
+              new Date(2026, 10, 10, 12, 0, 0).getTime() / 1000,
             availabilityTime: null,
           },
         }}
@@ -25,9 +26,7 @@ describe('ModelPicker', () => {
     )
 
     expect(screen.getByText('ECMWF IFS HRES 9 km')).toBeInTheDocument()
-    expect(
-      screen.getByText(/Dernière sortie .*12:00 UTC/),
-    ).toBeInTheDocument()
+    expect(screen.getByText(/Dernière sortie .*12:00$/)).toBeInTheDocument()
     await user.click(
       screen.getByRole('button', { name: /Retirer ECMWF IFS HRES 9 km/ }),
     )

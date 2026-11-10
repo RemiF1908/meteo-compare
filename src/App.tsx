@@ -33,6 +33,7 @@ import {
   readConfigFromUrl,
   writeConfigToUrl,
 } from './lib/urlState'
+import { clientTimeZone } from './lib/timeZone'
 import type {
   Location,
   ModelStatus,
@@ -59,6 +60,7 @@ function initialTheme(): Theme {
 
 function App() {
   const initial = useMemo(() => readConfigFromUrl(), [])
+  const timeZone = useMemo(() => clientTimeZone(), [])
 
   const [location, setLocation] = useState<Location>(initial.location)
   const [modelIds, setModelIds] = useState<string[]>(initial.modelIds)
@@ -343,7 +345,7 @@ function App() {
                   parameter={activeParameter}
                   loading={forecast.loading}
                   dark={theme === 'dark'}
-                  timeZone={location.timezone}
+                  timeZone={timeZone}
                 />
               ) : (
                 <ForecastTable

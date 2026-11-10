@@ -1,7 +1,7 @@
 import type { TimeMode, UnitSettings } from '../types'
 
 const PREFIX = 'meteo-compare:'
-const CACHE_VERSION = 'v2'
+const CACHE_VERSION = 'v3'
 const TTL_MS = 10 * 60 * 1000
 
 interface CacheEntry<T> {
@@ -43,6 +43,7 @@ export interface ForecastCacheKeyOptions {
   mode: TimeMode
   days: number
   units: UnitSettings
+  timeZone: string
   refreshToken?: number
 }
 
@@ -59,6 +60,7 @@ export function forecastCacheKey(options: ForecastCacheKeyOptions): string {
     options.units.temperature,
     options.units.wind,
     options.units.precipitation,
+    options.timeZone,
     options.refreshToken ?? 0,
   ].join('|')
 }

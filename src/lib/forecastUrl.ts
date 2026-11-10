@@ -8,6 +8,7 @@ export interface ForecastUrlOptions {
   mode: TimeMode
   days: number
   units: UnitSettings
+  timeZone: string
 }
 
 const FORECAST_ENDPOINT = 'https://api.open-meteo.com/v1/forecast'
@@ -23,7 +24,7 @@ export function buildForecastUrl(options: ForecastUrlOptions): string {
   }
 
   url.searchParams.set('forecast_days', String(options.days))
-  url.searchParams.set('timezone', 'auto')
+  url.searchParams.set('timezone', options.timeZone)
   url.searchParams.set('temperature_unit', options.units.temperature)
   url.searchParams.set('wind_speed_unit', options.units.wind)
   url.searchParams.set('precipitation_unit', options.units.precipitation)

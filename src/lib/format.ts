@@ -160,14 +160,12 @@ export function formatRunTime(unixSeconds: number | null | undefined): string {
   if (Number.isNaN(date.getTime())) return '—'
 
   const now = new Date()
-  const sameUtcDay =
-    date.getUTCFullYear() === now.getUTCFullYear() &&
-    date.getUTCMonth() === now.getUTCMonth() &&
-    date.getUTCDate() === now.getUTCDate()
+  const sameLocalDay =
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    date.getDate() === now.getDate()
 
-  const iso = date.toISOString()
-  const time = `${iso.slice(11, 16)} UTC`
-  return sameUtcDay ? time : `${iso.slice(8, 10)}/${iso.slice(5, 7)} ${time}`
+  return format(date, sameLocalDay ? 'HH:mm' : 'dd/MM HH:mm', { locale: fr })
 }
 
 export function formatCoordinates(latitude: number, longitude: number): string {

@@ -1,4 +1,5 @@
 import { buildForecastUrl } from '../lib/forecastUrl'
+import { clientTimeZone } from '../lib/timeZone'
 import type {
   Location,
   ModelRunInfo,
@@ -111,6 +112,7 @@ export async function fetchModelForecast(
     mode: options.mode,
     days: options.days,
     units: options.units,
+    timeZone: clientTimeZone(),
   })
 
   let response: Response

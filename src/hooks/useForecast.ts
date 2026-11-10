@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { fetchModelForecast } from '../api/openMeteo'
 import { mapWithConcurrency } from '../lib/async'
 import { cacheGet, cacheSet, forecastCacheKey } from '../lib/cache'
+import { clientTimeZone } from '../lib/timeZone'
 import type {
   ForecastState,
   Location,
@@ -61,6 +62,7 @@ export function useForecast({
               mode,
               days,
               units,
+              timeZone: clientTimeZone(),
               refreshToken,
             })
 
