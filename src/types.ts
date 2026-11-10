@@ -62,6 +62,11 @@ export type ModelStatus =
   | 'out-of-domain'
   | 'error'
 
+export interface ModelRunInfo {
+  initialisationTime: number
+  availabilityTime: number | null
+}
+
 export interface ModelSeries {
   modelId: string
   status: ModelStatus

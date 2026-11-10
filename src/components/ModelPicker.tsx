@@ -6,7 +6,8 @@ import {
   MODEL_GROUPS,
   defaultModelIdsForLocation,
 } from '../data/models'
-import type { ModelStatus } from '../types'
+import type { ModelRunInfo, ModelStatus } from '../types'
+import { formatRunTime } from '../lib/format'
 import { Dialog } from './ui/Dialog'
 import { Button } from './ui/Button'
 import { IconButton } from './ui/IconButton'
@@ -14,6 +15,7 @@ import { IconButton } from './ui/IconButton'
 interface ModelRailProps {
   selected: string[]
   statuses: Record<string, ModelStatus>
+  runs: Record<string, ModelRunInfo>
   loading: boolean
   onRemove: (modelId: string) => void
   onOpen: () => void
@@ -49,6 +51,7 @@ function StatusDot({ status }: { status?: ModelStatus }) {
 export function ModelRail({
   selected,
   statuses,
+  runs,
   loading,
   onRemove,
   onOpen,
@@ -80,6 +83,7 @@ export function ModelRail({
           {selected.map((modelId) => {
             const model = MODEL_BY_ID.get(modelId)
             const status = statuses[modelId]
+            const run = runs[modelId]
             return (
               <li key={modelId} className="group flex items-center gap-2 py-2">
                 <span
@@ -102,6 +106,11 @@ export function ModelRail({
                       </>
                     )}
                   </p>
+                  {run && (
+                    <p className="data mt-0.5 text-[10px] text-faint">
+                      Dernière sortie {formatRunTime(run.initialisationTime)}
+                    </p>
+                  )}
                 </div>
                 <IconButton
                   label={`Retirer ${model?.label ?? modelId}`}

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fetchModelForecast } from './openMeteo'
+import { fetchModelForecast, fetchModelRunInfo } from './openMeteo'
 
 const units = {
   temperature: 'celsius' as const,
@@ -41,5 +41,43 @@ describe('fetchModelForecast', () => {
 
     expect(result.data.snow_depth).toEqual([20, null])
     expect(result.units.snow_depth).toBe('cm')
+  })
+})
+
+describe('fetchModelRunInfo', () => {
+  it('récupère l’heure de la dernière sortie du modèle', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        last_run_initialisation_time: 1794290400,
+        last_run_availability_time: 1794312128,
+      }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const result = await fetchModelRunInfo('ecmwf_ifs')
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.open-meteo.com/data/ecmwf_ifs/static/meta.json',
+      { signal: undefined },
+    )
+    expect(result).toEqual({
+      initialisationTime: 1794290400,
+      availabilityTime: 1794312128,
+    })
+  })
+
+  it('ignore best_match et les réponses invalides', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({}),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    expect(await fetchModelRunInfo('best_match')).toBeNull()
+    expect(await fetchModelRunInfo('ecmwf_ifs')).toBeNull()
+    expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 })

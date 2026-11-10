@@ -708,3 +708,29 @@ export function defaultModelIdsForLocation(countryCode?: string): string[] {
 export function modelLabel(modelId: string): string {
   return MODEL_BY_ID.get(modelId)?.label ?? modelId
 }
+
+const META_MODEL_BY_ID: Record<string, string> = {
+  ncep_gfs_seamless: 'ncep_gfs013',
+  ncep_gfs_global: 'ncep_gfs013',
+  dwd_icon_seamless: 'dwd_icon',
+  dwd_icon_global: 'dwd_icon',
+  meteofrance_seamless: 'meteofrance_arome_france0025',
+  meteofrance_arpege_world: 'meteofrance_arpege_world025',
+  meteofrance_arome_france: 'meteofrance_arome_france0025',
+  ukmo_seamless: 'ukmo_global_deterministic_10km',
+  cmc_gem_seamless: 'cmc_gem_gdps',
+  jma_seamless: 'jma_gsm',
+  kma_seamless: 'kma_gdps',
+  metno_seamless: 'metno_nordic_pp',
+  metno_nordic: 'metno_nordic_pp',
+  knmi_seamless: 'knmi_harmonie_arome_netherlands',
+  dmi_seamless: 'dmi_harmonie_arome_europe',
+  meteoswiss_icon_seamless: 'meteoswiss_icon_ch1',
+  geosphere_seamless: 'geosphere_arome_austria',
+  chmi_aladin_seamless: 'chmi_aladin_cz_1km',
+}
+
+export function modelMetaId(modelId: string): string | null {
+  if (modelId === 'best_match') return null
+  return META_MODEL_BY_ID[modelId] ?? modelId
+}

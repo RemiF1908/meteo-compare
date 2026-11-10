@@ -1,6 +1,7 @@
 import { buildForecastUrl } from '../lib/forecastUrl'
 import type {
   Location,
+  ModelRunInfo,
   ModelSeries,
   ModelStatus,
   TimeMode,
@@ -15,6 +16,13 @@ interface ForecastResponse {
   hourly_units?: Record<string, string>
   daily_units?: Record<string, string>
 }
+
+interface ModelMetaResponse {
+  last_run_initialisation_time?: unknown
+  last_run_availability_time?: unknown
+}
+
+const MODEL_META_ENDPOINT = 'https://api.open-meteo.com/data'
 
 const PARAMETER_VALUE_SCALE: Record<string, number> = {
   snow_depth: 100,
@@ -46,6 +54,49 @@ function errorSeries(
     data: {},
     units: {},
     error,
+  }
+}
+
+export async function fetchModelRunInfo(
+  modelId: string,
+  signal?: AbortSignal,
+): Promise<ModelRunInfo | null> {
+  if (modelId === 'best_match') return null
+
+  let response: Response
+  try {
+    response = await fetch(
+      `${MODEL_META_ENDPOINT}/${encodeURIComponent(modelId)}/static/meta.json`,
+      { signal },
+    )
+  } catch {
+    return null
+  }
+
+  if (!response.ok) return null
+
+  let payload: ModelMetaResponse
+  try {
+    payload = (await response.json()) as ModelMetaResponse
+  } catch {
+    return null
+  }
+
+  const initialisationTime = payload.last_run_initialisation_time
+  if (
+    typeof initialisationTime !== 'number' ||
+    !Number.isFinite(initialisationTime)
+  ) {
+    return null
+  }
+
+  const availabilityTime = payload.last_run_availability_time
+  return {
+    initialisationTime,
+    availabilityTime:
+      typeof availabilityTime === 'number' && Number.isFinite(availabilityTime)
+        ? availabilityTime
+        : null,
   }
 }
 

@@ -27,6 +27,7 @@ import { IconButton } from './components/ui/IconButton'
 import { SegmentedControl } from './components/ui/SegmentedControl'
 import { DEFAULT_PARAMETER_IDS, getParameter } from './data/parameters'
 import { useForecast } from './hooks/useForecast'
+import { useModelRuns } from './hooks/useModelRuns'
 import { buildTimeline } from './lib/mergeSeries'
 import {
   readConfigFromUrl,
@@ -120,6 +121,8 @@ function App() {
     units,
     refreshToken,
   })
+
+  const modelRuns = useModelRuns(modelIds, refreshToken)
 
   const statuses = useMemo(() => {
     const map: Record<string, ModelStatus> = {}
@@ -287,6 +290,7 @@ function App() {
               <ModelRail
                 selected={modelIds}
                 statuses={statuses}
+                runs={modelRuns}
                 loading={forecast.loading}
                 onRemove={handleModelRemove}
                 onOpen={() => setPanel('models')}

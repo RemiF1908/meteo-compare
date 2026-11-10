@@ -154,6 +154,22 @@ export function formatFetchedAt(timestamp: number | null): string {
   return format(new Date(timestamp), 'HH:mm:ss', { locale: fr })
 }
 
+export function formatRunTime(unixSeconds: number | null | undefined): string {
+  if (!unixSeconds) return '—'
+  const date = new Date(unixSeconds * 1000)
+  if (Number.isNaN(date.getTime())) return '—'
+
+  const now = new Date()
+  const sameUtcDay =
+    date.getUTCFullYear() === now.getUTCFullYear() &&
+    date.getUTCMonth() === now.getUTCMonth() &&
+    date.getUTCDate() === now.getUTCDate()
+
+  const iso = date.toISOString()
+  const time = `${iso.slice(11, 16)} UTC`
+  return sameUtcDay ? time : `${iso.slice(8, 10)}/${iso.slice(5, 7)} ${time}`
+}
+
 export function formatCoordinates(latitude: number, longitude: number): string {
   const lat = `${Math.abs(latitude).toFixed(3)}° ${latitude >= 0 ? 'N' : 'S'}`
   const lon = `${Math.abs(longitude).toFixed(3)}° ${longitude >= 0 ? 'E' : 'O'}`

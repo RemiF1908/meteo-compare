@@ -4,6 +4,7 @@ import {
   MODELS,
   MODEL_BY_ID,
   defaultModelIdsForLocation,
+  modelMetaId,
 } from './models'
 
 describe('catalogue des modèles', () => {
@@ -27,5 +28,15 @@ describe('catalogue des modèles', () => {
     )
     expect(defaultModelIdsForLocation('US')).toContain('ncep_hrrr_conus')
     expect(defaultModelIdsForLocation(undefined)).toEqual(DEFAULT_MODEL_IDS)
+  })
+
+  it('résout l’identifiant de métadonnées des modèles seamless', () => {
+    expect(modelMetaId('ecmwf_ifs')).toBe('ecmwf_ifs')
+    expect(modelMetaId('ncep_gfs_seamless')).toBe('ncep_gfs013')
+    expect(modelMetaId('dwd_icon_seamless')).toBe('dwd_icon')
+    expect(modelMetaId('meteofrance_seamless')).toBe(
+      'meteofrance_arome_france0025',
+    )
+    expect(modelMetaId('best_match')).toBeNull()
   })
 })

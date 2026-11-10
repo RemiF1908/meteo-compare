@@ -3,6 +3,7 @@ import {
   cardinalDirection,
   flagEmoji,
   formatAxisLabel,
+  formatRunTime,
   formatTickLabel,
   formatValue,
   weatherCodeLabel,
@@ -36,5 +37,13 @@ describe('format', () => {
     expect(formatTickLabel('2026-11-03', 'daily')).toMatch(/3 nov/)
     expect(flagEmoji('FR')).toBe('🇫🇷')
     expect(flagEmoji(undefined)).toBe('🌍')
+  })
+
+  it('formate l’heure de sortie d’un modèle en UTC', () => {
+    expect(formatRunTime(Date.UTC(2026, 10, 10, 12, 0, 0) / 1000)).toMatch(
+      /12:00 UTC$/,
+    )
+    expect(formatRunTime(null)).toBe('—')
+    expect(formatRunTime(Number.NaN)).toBe('—')
   })
 })
