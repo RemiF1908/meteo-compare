@@ -1,20 +1,37 @@
 import { useEffect, useState } from 'react'
 import { fetchModelRunInfo } from '../api/openMeteo'
-import { modelMetaId } from '../data/models'
-import type { ModelRunInfo } from '../types'
+import { modelMetaIds } from '../data/models'
+import type { Location, ModelRunInfo } from '../types'
+
+function runTimestamp(run: ModelRunInfo): number {
+  return run.availabilityTime ?? run.initialisationTime
+}
+
+function newestRun(runs: (ModelRunInfo | null)[]): ModelRunInfo | null {
+  let newest: ModelRunInfo | null = null
+  for (const run of runs) {
+    if (!run) continue
+    if (!newest || runTimestamp(run) > runTimestamp(newest)) newest = run
+  }
+  return newest
+}
 
 export function useModelRuns(
   modelIds: string[],
+  location: Location,
   refreshToken: number,
 ): Record<string, ModelRunInfo> {
   const [runs, setRuns] = useState<Record<string, ModelRunInfo>>({})
 
   useEffect(() => {
-    const ids = modelIds.flatMap((modelId) => {
-      const metaId = modelMetaId(modelId)
-      return metaId ? [[modelId, metaId] as const] : []
-    })
-    if (ids.length === 0) {
+    const targets = modelIds
+      .map((modelId) => ({
+        modelId,
+        metaIds: modelMetaIds(modelId, location),
+      }))
+      .filter((target) => target.metaIds.length > 0)
+
+    if (targets.length === 0) {
       // oxlint-disable-next-line react/set-state-in-effect
       setRuns({})
       return
@@ -25,9 +42,13 @@ export function useModelRuns(
 
     const run = async () => {
       const entries = await Promise.all(
-        ids.map(async ([modelId, metaId]) => {
-          const info = await fetchModelRunInfo(metaId, controller.signal)
-          return [modelId, info] as const
+        targets.map(async ({ modelId, metaIds }) => {
+          const infos = await Promise.all(
+            metaIds.map((metaId) =>
+              fetchModelRunInfo(metaId, controller.signal),
+            ),
+          )
+          return [modelId, newestRun(infos)] as const
         }),
       )
 
@@ -46,7 +67,7 @@ export function useModelRuns(
       active = false
       controller.abort()
     }
-  }, [modelIds, refreshToken])
+  }, [modelIds, location, refreshToken])
 
   return runs
 }

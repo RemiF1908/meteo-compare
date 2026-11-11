@@ -124,7 +124,7 @@ function App() {
     refreshToken,
   })
 
-  const modelRuns = useModelRuns(modelIds, refreshToken)
+  const modelRuns = useModelRuns(modelIds, location, refreshToken)
 
   const statuses = useMemo(() => {
     const map: Record<string, ModelStatus> = {}

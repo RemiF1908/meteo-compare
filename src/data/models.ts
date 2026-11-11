@@ -1,4 +1,4 @@
-import type { ModelInfo, ModelRegion } from '../types'
+import type { Location, ModelInfo, ModelRegion } from '../types'
 
 interface RawModel {
   id: string
@@ -128,6 +128,36 @@ const RAW_MODELS: RawModel[] = [
     resolution: '12 km',
     forecastDays: 3,
     updateFrequency: '6 h',
+  },
+  {
+    id: 'ncep_rrfs_north_america',
+    label: 'NCEP RRFS North America',
+    provider: 'NOAA / NCEP',
+    group: 'NOAA / NCEP',
+    region: 'north-america',
+    resolution: '13 km',
+    forecastDays: 4,
+    updateFrequency: '6 h',
+  },
+  {
+    id: 'ncep_rrfs_conus',
+    label: 'NCEP RRFS U.S. Conus',
+    provider: 'NOAA / NCEP',
+    group: 'NOAA / NCEP',
+    region: 'north-america',
+    resolution: '3 km',
+    forecastDays: 4,
+    updateFrequency: '6 h',
+  },
+  {
+    id: 'ncep_rrfs_conus_15min',
+    label: 'NCEP RRFS U.S. Conus 15 min',
+    provider: 'NOAA / NCEP',
+    group: 'NOAA / NCEP',
+    region: 'north-america',
+    resolution: '3 km',
+    forecastDays: 1,
+    updateFrequency: '1 h',
   },
   {
     id: 'ncep_aigfs025',
@@ -710,27 +740,141 @@ export function modelLabel(modelId: string): string {
 }
 
 const META_MODEL_BY_ID: Record<string, string> = {
-  ncep_gfs_seamless: 'ncep_gfs013',
   ncep_gfs_global: 'ncep_gfs013',
-  dwd_icon_seamless: 'dwd_icon',
   dwd_icon_global: 'dwd_icon',
-  meteofrance_seamless: 'meteofrance_arome_france0025',
   meteofrance_arpege_world: 'meteofrance_arpege_world025',
   meteofrance_arome_france: 'meteofrance_arome_france0025',
-  ukmo_seamless: 'ukmo_global_deterministic_10km',
-  cmc_gem_seamless: 'cmc_gem_gdps',
-  jma_seamless: 'jma_gsm',
-  kma_seamless: 'kma_gdps',
-  metno_seamless: 'metno_nordic_pp',
   metno_nordic: 'metno_nordic_pp',
-  knmi_seamless: 'knmi_harmonie_arome_netherlands',
-  dmi_seamless: 'dmi_harmonie_arome_europe',
-  meteoswiss_icon_seamless: 'meteoswiss_icon_ch1',
-  geosphere_seamless: 'geosphere_arome_austria',
-  chmi_aladin_seamless: 'chmi_aladin_cz_1km',
 }
 
-export function modelMetaId(modelId: string): string | null {
-  if (modelId === 'best_match') return null
-  return META_MODEL_BY_ID[modelId] ?? modelId
+interface MetaCandidate {
+  modelId: string
+  appliesTo: (location: Location) => boolean
+}
+
+function inBounds(
+  location: Location,
+  north: number,
+  south: number,
+  west: number,
+  east: number,
+): boolean {
+  return (
+    location.latitude <= north &&
+    location.latitude >= south &&
+    location.longitude >= west &&
+    location.longitude <= east
+  )
+}
+
+const GLOBAL = () => true
+const isNorthAmerica = (location: Location) =>
+  inBounds(location, 72, 12, -170, -50)
+const isConus = (location: Location) =>
+  inBounds(location, 50, 24, -125, -66)
+const isCanada = (location: Location) =>
+  inBounds(location, 84, 42, -141, -52)
+const isCanadaWest = (location: Location) =>
+  inBounds(location, 60, 48, -141, -95)
+const isEurope = (location: Location) =>
+  inBounds(location, 72, 34, -25, 45)
+const isCentralEurope = (location: Location) =>
+  inBounds(location, 56, 43, -2, 25)
+const isFrance = (location: Location) =>
+  inBounds(location, 51.5, 41, -5.5, 9.8)
+const isUnitedKingdom = (location: Location) =>
+  inBounds(location, 61, 49, -9, 2)
+const isNordic = (location: Location) =>
+  inBounds(location, 72, 54, -25, 32)
+const isNetherlands = (location: Location) =>
+  inBounds(location, 54, 49, 2, 8)
+const isSwitzerland = (location: Location) =>
+  inBounds(location, 48, 45.8, 5.9, 10.5)
+const isAustria = (location: Location) =>
+  inBounds(location, 49.1, 46.3, 9.5, 17.2)
+const isCzechia = (location: Location) =>
+  inBounds(location, 51.1, 48.5, 12, 18.9)
+const isJapan = (location: Location) =>
+  inBounds(location, 46, 24, 122, 146)
+const isKorea = (location: Location) =>
+  inBounds(location, 39, 33, 124, 132)
+
+const SEAMLESS_META_CANDIDATES: Record<string, MetaCandidate[]> = {
+  ncep_gfs_seamless: [
+    { modelId: 'ncep_hrrr_conus', appliesTo: isConus },
+    { modelId: 'ncep_nbm_conus', appliesTo: isConus },
+    { modelId: 'ncep_rrfs_conus', appliesTo: isConus },
+    { modelId: 'ncep_rrfs_north_america', appliesTo: isNorthAmerica },
+    { modelId: 'ncep_gfs013', appliesTo: GLOBAL },
+    { modelId: 'ncep_gfs025', appliesTo: GLOBAL },
+  ],
+  dwd_icon_seamless: [
+    { modelId: 'dwd_icon_d2', appliesTo: isCentralEurope },
+    { modelId: 'dwd_icon_eu', appliesTo: isEurope },
+    { modelId: 'dwd_icon', appliesTo: GLOBAL },
+  ],
+  meteofrance_seamless: [
+    { modelId: 'meteofrance_arome_france_hd', appliesTo: isFrance },
+    { modelId: 'meteofrance_arome_france0025', appliesTo: isFrance },
+    { modelId: 'meteofrance_arpege_europe', appliesTo: isEurope },
+    { modelId: 'meteofrance_arpege_world025', appliesTo: GLOBAL },
+  ],
+  ukmo_seamless: [
+    { modelId: 'ukmo_uk_deterministic_2km', appliesTo: isUnitedKingdom },
+    { modelId: 'ukmo_global_deterministic_10km', appliesTo: GLOBAL },
+  ],
+  cmc_gem_seamless: [
+    { modelId: 'cmc_gem_hrdps', appliesTo: isCanada },
+    { modelId: 'cmc_gem_hrdps_west', appliesTo: isCanadaWest },
+    { modelId: 'cmc_gem_rdps', appliesTo: isNorthAmerica },
+    { modelId: 'cmc_gem_gdps', appliesTo: GLOBAL },
+  ],
+  jma_seamless: [
+    { modelId: 'jma_msm', appliesTo: isJapan },
+    { modelId: 'jma_gsm', appliesTo: GLOBAL },
+  ],
+  kma_seamless: [
+    { modelId: 'kma_ldps', appliesTo: isKorea },
+    { modelId: 'kma_gdps', appliesTo: GLOBAL },
+  ],
+  metno_seamless: [{ modelId: 'metno_nordic_pp', appliesTo: isNordic }],
+  knmi_seamless: [
+    {
+      modelId: 'knmi_harmonie_arome_netherlands',
+      appliesTo: isNetherlands,
+    },
+    { modelId: 'knmi_harmonie_arome_europe', appliesTo: isEurope },
+  ],
+  dmi_seamless: [
+    { modelId: 'dmi_harmonie_arome_europe', appliesTo: isEurope },
+  ],
+  meteoswiss_icon_seamless: [
+    { modelId: 'meteoswiss_icon_ch1', appliesTo: isSwitzerland },
+    { modelId: 'meteoswiss_icon_ch2', appliesTo: isSwitzerland },
+  ],
+  geosphere_seamless: [
+    { modelId: 'geosphere_arome_austria', appliesTo: isAustria },
+  ],
+  chmi_aladin_seamless: [
+    { modelId: 'chmi_aladin_cz_1km', appliesTo: isCzechia },
+    {
+      modelId: 'chmi_aladin_central_europe_2km',
+      appliesTo: isCentralEurope,
+    },
+  ],
+}
+
+export function modelMetaIds(modelId: string, location: Location): string[] {
+  if (modelId === 'best_match') return []
+
+  const candidates = SEAMLESS_META_CANDIDATES[modelId]
+  if (!candidates) {
+    return [META_MODEL_BY_ID[modelId] ?? modelId]
+  }
+
+  const applicable = candidates.filter((candidate) =>
+    candidate.appliesTo(location),
+  )
+  const selected = applicable.length > 0 ? applicable : candidates
+  return [...new Set(selected.map((candidate) => candidate.modelId))]
 }

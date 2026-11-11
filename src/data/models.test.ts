@@ -4,7 +4,7 @@ import {
   MODELS,
   MODEL_BY_ID,
   defaultModelIdsForLocation,
-  modelMetaId,
+  modelMetaIds,
 } from './models'
 
 describe('catalogue des modèles', () => {
@@ -31,12 +31,38 @@ describe('catalogue des modèles', () => {
   })
 
   it('résout l’identifiant de métadonnées des modèles seamless', () => {
-    expect(modelMetaId('ecmwf_ifs')).toBe('ecmwf_ifs')
-    expect(modelMetaId('ncep_gfs_seamless')).toBe('ncep_gfs013')
-    expect(modelMetaId('dwd_icon_seamless')).toBe('dwd_icon')
-    expect(modelMetaId('meteofrance_seamless')).toBe(
-      'meteofrance_arome_france0025',
+    const paris = {
+      name: 'Paris',
+      latitude: 48.8566,
+      longitude: 2.3522,
+      countryCode: 'FR',
+    }
+    const newYork = {
+      name: 'New York',
+      latitude: 40.7128,
+      longitude: -74.006,
+      countryCode: 'US',
+    }
+    const london = {
+      name: 'Londres',
+      latitude: 51.5072,
+      longitude: -0.1276,
+      countryCode: 'GB',
+    }
+
+    expect(modelMetaIds('ecmwf_ifs', paris)).toEqual(['ecmwf_ifs'])
+    expect(modelMetaIds('best_match', paris)).toEqual([])
+    expect(modelMetaIds('meteofrance_seamless', paris)).toContain(
+      'meteofrance_arome_france_hd',
     )
-    expect(modelMetaId('best_match')).toBeNull()
+    expect(modelMetaIds('meteofrance_seamless', newYork)).toEqual([
+      'meteofrance_arpege_world025',
+    ])
+    expect(modelMetaIds('ncep_gfs_seamless', newYork)).toContain(
+      'ncep_hrrr_conus',
+    )
+    expect(modelMetaIds('ukmo_seamless', london)).toContain(
+      'ukmo_uk_deterministic_2km',
+    )
   })
 })

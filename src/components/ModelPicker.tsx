@@ -107,8 +107,17 @@ export function ModelRail({
                     )}
                   </p>
                   {run && (
-                    <p className="data mt-0.5 text-[10px] text-faint">
-                      Dernière sortie {formatRunTime(run.initialisationTime)}
+                    <p
+                      className="data mt-0.5 text-[10px] text-faint"
+                      title={
+                        run.availabilityTime
+                          ? `Run ${formatRunTime(run.initialisationTime)} · données disponibles à ${formatRunTime(run.availabilityTime)} (heure locale)`
+                          : `Run ${formatRunTime(run.initialisationTime)} (heure locale)`
+                      }
+                    >
+                      {run.availabilityTime
+                        ? `Sortie : ${formatRunTime(run.availabilityTime)}`
+                        : ''}
                     </p>
                   )}
                 </div>
